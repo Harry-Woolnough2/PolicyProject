@@ -1,0 +1,43 @@
+---
+title: "PolicyProject"
+output: html_document
+date: "2023-09-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This project will explore the relationship between the increasing price of energy and its effect on the UK's transport services.
+
+
+```{r, warning = FALSE, message = FALSE}
+library("tidyverse")
+library("ggplot2")
+library("readxl")
+
+```
+
+```{r, }
+excel_file <- "householdfinances9to20august2023final.xlsx"
+col_list <- c("Dates", "All_perc", "LCL", "UCL")
+data <- read_excel(excel_file, sheet = "7")
+
+data <- data[9:nrow(data),]
+colnames(data)<- col_list
+data<- data[-1,]
+
+data$All_perc <- as.numeric(data$All_perc)
+data$Dates <- factor(data$Dates, levels = data$Dates)
+
+head(data)
+
+```
+
+
+```{r, }
+ggplot(data, aes(x = Dates, y = All_perc)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+  
+```
