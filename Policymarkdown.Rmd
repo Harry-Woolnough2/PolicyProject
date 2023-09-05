@@ -10,16 +10,20 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This project will explore the relationship between the increasing price of energy and its effect on the UK's transport services.
 
-
 ```{r, warning = FALSE, message = FALSE}
 library("tidyverse")
 library("ggplot2")
 library("readxl")
+library("openxlsx")
 
 ```
 
+# first explore
+
+
+
 ```{r, }
-excel_file <- "householdfinances9to20august2023final.xlsx"
+excel_file <- "Data/householdfinances9to20august2023final.xlsx"
 col_list <- c("Dates", "All_perc", "LCL", "UCL")
 data <- read_excel(excel_file, sheet = "7")
 
@@ -38,6 +42,34 @@ head(data)
 ```{r, }
 ggplot(data, aes(x = Dates, y = All_perc)) +
   geom_point() +
-  geom_smooth(method = "lm")
+  geom_smooth(method = "lm") +
+  coord_flip()
   
 ```
+
+
+# chaps
+
+```{r}
+excel_file <- "Data/ukspendingoncreditanddebitcardsdataset010923.xlsx"
+
+data <- read_excel(excel_file, sheet = "Daily CHAPS indices")
+
+data <- data[3:nrow(data),]
+
+colnames(data)<- data[1,]
+data<- data[-1,]
+data$Date <- convertToDateTime(data$Date)
+
+numeric_columns <- c("Aggregate", "Delayable", "Social", "Staple", "Work Related")  # Replace with your column names
+data[numeric_columns] <- lapply(data[numeric_columns], as.numeric)
+
+data = pivot_longer(data, cols = numeric_columns, names_to = "Type")
+head(data)
+```
+
+```{r}
+ggplot(data, aes(x = Date, y = value)) +
+  geom_line(aes(colour = Type))
+```
+
