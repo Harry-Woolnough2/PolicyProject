@@ -67,9 +67,22 @@ data[numeric_columns] <- lapply(data[numeric_columns], as.numeric)
 data = pivot_longer(data, cols = numeric_columns, names_to = "Type")
 head(data)
 ```
+```{r}
+retail_data <- read.csv("Data/retail-price-comparison.csv")
+retail_names <- c("Date", "Avg_st_large", "Avg_st_other", "Avg_fixed", "Cheap_tarr_large", "Cheap_tarr_all_supp", "Cheap_tarr_bask", "Default")
+colnames(retail_data) <- retail_names
+retail_data$Date <- format(as.POSIXct(retail_data$Date,format='%Y-%m-%d %H:%M:%S'),format='%Y-%m-%d')
+retail_data$Date<- as.POSIXct(retail_data$Date, format="%Y-%m-%d", tz="UTC")
+head(retail_data)
+```
+```{r}
+ggplot(retail_data, aes(x = Date,y = Avg_st_large)) +
+  geom_line()
+```
 
 ```{r}
 ggplot(data, aes(x = Date, y = value)) +
-  geom_line(aes(colour = Type))
+  geom_line() +
+  facet_wrap(~Type)
 ```
 
