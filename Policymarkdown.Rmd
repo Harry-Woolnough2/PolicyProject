@@ -1,5 +1,5 @@
 ---
-title: "PolicyProject"
+title: "Policy Project"
 output:
   html_document:
     theme: united
@@ -16,16 +16,20 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This project will explore the relationship between the increasing price of energy and it's effect on the different types of expenditure from debit/credit cards.
+This project will explore the relationship between the increasing energy tarrifs and it's effect on the different types of expenditure from debit/credit cards.
+
+Research question: How has the increasing price of energy (specifically for household energy) affected spending on different sectors?
 
 The two datasets I will be using are:
 
 * The CHAPS (Clearing House Automated Payment System ) dataset
-* The ofgem retial energy prices dataset
+* The ofgem retial energy prices data set 
 
 # Background
 
 The CHAPS data series are experimental faster indicators for monitoring UK spending on credit and debit cards. They track the daily CHAPS payments made by credit and debit card payment processors (often known as ‘merchant acquirers’) to around 100 major UK retail corporates. These payments are the proceeds of recent credit and debit card transactions made by customers at their stores (both physical and via telephone/online platforms). (taken from https://www.bankofengland.co.uk/payment-and-settlement/chaps-faster-indicator)
+
+The ofgem retail energy prices dataset covers the Average standard variable tariff from Large legacy suppliers as well as the cheapeast tarrifs at the time. I will be using the standard average tarrifs from the large suppliers, as this will give me the best indication of the general populations energy tarrifs. 
 
 Hopefully, by comparing the different types of expenditure over the last few years and comparing it to energy tarrif prices, I can identify whether there is a relationship between the two.
 ```{r, warning = FALSE, message = FALSE}
@@ -160,12 +164,32 @@ retail_data <- retail_data %>%
 head(retail_data)
 ```
 
+## Visualisations {.tabset}
+
+### Average standard variable tarrif from large legacy companies
+
 ```{r, warning = FALSE, message = FALSE}
 #simple plot
 ggplot(retail_data, aes(x = Date,y = Avg_st_large)) +
   geom_line()
 ```
 
+### Average fixed tarrif
+
+```{r, warning = FALSE, message = FALSE}
+#simple plot
+ggplot(retail_data, aes(x = Date,y = Avg_fixed)) +
+  geom_line()
+```
+
+
+### Tarrif cap 
+
+```{r, warning = FALSE, message = FALSE}
+#simple plot
+ggplot(retail_data, aes(x = Date,y = Default)) +
+  geom_line()
+```
 
 # Looking at the trends together {.tabset}
 
@@ -179,6 +203,25 @@ ggplot() +
   facet_wrap(~Type)
 ```
 
+## daily data vs fixed average
+
+```{r, warning = FALSE, message = FALSE} 
+ggplot() +
+  geom_line(data = data, aes(x = Date, y = value), color = "red") +
+  geom_line(data = retail_data, aes(x = Date, y = Avg_fixed/15), color = "blue") +
+  scale_y_continuous(sec.axis = sec_axis(~.*15, name= "energy prices")) +
+  facet_wrap(~Type)
+```
+
+## daily vs energy cap tarrif
+
+```{r, warning = FALSE, message = FALSE} 
+ggplot() +
+  geom_line(data = data, aes(x = Date, y = value), color = "red") +
+  geom_line(data = retail_data, aes(x = Date, y = Default/15), color = "blue") +
+  scale_y_continuous(sec.axis = sec_axis(~.*15, name= "energy prices")) +
+  facet_wrap(~Type)
+```
 
 ## monthly sa aggregate data vs std energy prices
 
@@ -189,17 +232,36 @@ ggplot() +
   scale_y_continuous(sec.axis = sec_axis(~.*15, name= "energy prices")) 
 ```
 
+
+
 # Limitations
 
 There are several limitations to this project. With tight time constraints it was hard to find appropriate data within recent time-frames, as well as then carrying out detailed analysis on it.
 
 CHAPS limitations:
 
-* Only includes 100 major retialors - may create bias
+* Only includes 100 major retailors - may create bias
 * Only monitors credit/debit cards - excluding cash may bias towards higher socio-economic groups
+* No seasonally adjusted data for the different types apart from aggregate, which makes it very hard to extract meaningful insights
+* The groups are quite broad, which makes it hard to specifically target areas that may be effected by rising energy tarrifs.
 
-# Conclusions and recommendations
+Energy tarrifs:
 
+* the dataset only contains the average, and by grouping all tarrifs together it could be removing inequalities, for example regional/socio-economic disparities between energy tarrifs and spending.
+
+Other:
+
+* Data is also from the COVID-19 pandemic, which may have a real effect on how people spent money. E.g. less spending on hospitality/eating out due to being in lockdown. This effect may be making it harder to see how people's spending changes with varying energy tarrifs.
+
+# Conclusions, recommendations and future research
+
+Looking at the non-seasonally adjusted data, it is especially hard to see how increasing prices are effecting spending, mainly due to the fact that increases often happen around Christmas which has a large confounding effect on spending.
+
+In conclusion, looking at the aggregate seasonally adjusted data in comparison the average energy tarrif prices, it does not look like there is an easily identifiable correlation. 
+
+In the future, with more time available, it would be great to explore this relationship between different socio-economic backgrounds. By looking at those from lower socio-economic backgrounds we may be able to identify how their spending changes, and identify potential areas which can be aided.
+
+It would also be great to this with the categories further broken down, allowing us to see specifically which industries are affected the most by increasing energy prices.
 
 # Sources
 
