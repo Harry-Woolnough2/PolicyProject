@@ -1,16 +1,35 @@
 ---
 title: "PolicyProject"
-output: html_document
-date: "2023-09-05"
+output:
+  html_document:
+    theme: united
+    highlight: 
+    df_print: paged
+    code_folding: "hide"
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This project will explore the relationship between the increasing price of energy and its effect on the UK's transport services.
+This project will explore the relationship between the increasing price of energy and it's effect on the different types of expenditure from debit/credit cards.
 
+The two datasets I will be using are:
+
+* The CHAPS (Clearing House Automated Payment System ) dataset
+* The ofgem retial energy prices dataset
+
+# Background
+
+The CHAPS data series are experimental faster indicators for monitoring UK spending on credit and debit cards. They track the daily CHAPS payments made by credit and debit card payment processors (often known as ‘merchant acquirers’) to around 100 major UK retail corporates. These payments are the proceeds of recent credit and debit card transactions made by customers at their stores (both physical and via telephone/online platforms). (taken from https://www.bankofengland.co.uk/payment-and-settlement/chaps-faster-indicator)
+
+Hopefully, by comparing the different types of expenditure over the last few years and comparing it to energy tarrif prices, I can identify whether there is a relationship between the two.
 ```{r, warning = FALSE, message = FALSE}
+# load in packages needed
 library("tidyverse")
 library("ggplot2")
 library("readxl")
@@ -18,71 +37,171 @@ library("openxlsx")
 
 ```
 
-# first explore
+# Looking at CHAPS data
 
+A look at the data after pre-processing: 
 
+* 'staples' refers to companies that sell essential goods that households need to purchase, such as food and utilities
+* 'work-related' refers to companies providing public transport or selling petrol
+*  'delayable' refers to companies selling goods whose purchase could be delayed, such as clothing or furnishings
+* 'social' refers to spending on travel and eating out
 
-```{r, }
-excel_file <- "Data/householdfinances9to20august2023final.xlsx"
-col_list <- c("Dates", "All_perc", "LCL", "UCL")
-data <- read_excel(excel_file, sheet = "7")
+## Daily data, non-seasonally adjusted:
 
-data <- data[9:nrow(data),]
-colnames(data)<- col_list
-data<- data[-1,]
-
-data$All_perc <- as.numeric(data$All_perc)
-data$Dates <- factor(data$Dates, levels = data$Dates)
-
-head(data)
-
-```
-
-
-```{r, }
-ggplot(data, aes(x = Dates, y = All_perc)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  coord_flip()
-  
-```
-
-
-# chaps
-
-```{r}
+```{r, warning = FALSE, message = FALSE}
+# load in data
 excel_file <- "Data/ukspendingoncreditanddebitcardsdataset010923.xlsx"
-
 data <- read_excel(excel_file, sheet = "Daily CHAPS indices")
 
+# remove uneccessary info from headers
 data <- data[3:nrow(data),]
 
+# reset colnames
 colnames(data)<- data[1,]
 data<- data[-1,]
 data$Date <- convertToDateTime(data$Date)
 
+# change numbers from characters to numeric
 numeric_columns <- c("Aggregate", "Delayable", "Social", "Staple", "Work Related")  # Replace with your column names
 data[numeric_columns] <- lapply(data[numeric_columns], as.numeric)
 
-data = pivot_longer(data, cols = numeric_columns, names_to = "Type")
+# pivvot column to type column for ease of plotting
+data <- pivot_longer(data, cols = numeric_columns, names_to = "Type")
+
 head(data)
 ```
-```{r}
-retail_data <- read.csv("Data/retail-price-comparison.csv")
-retail_names <- c("Date", "Avg_st_large", "Avg_st_other", "Avg_fixed", "Cheap_tarr_large", "Cheap_tarr_all_supp", "Cheap_tarr_bask", "Default")
-colnames(retail_data) <- retail_names
-retail_data$Date <- format(as.POSIXct(retail_data$Date,format='%Y-%m-%d %H:%M:%S'),format='%Y-%m-%d')
-retail_data$Date<- as.POSIXct(retail_data$Date, format="%Y-%m-%d", tz="UTC")
-head(retail_data)
-```
-```{r}
-ggplot(retail_data, aes(x = Date,y = Avg_st_large)) +
-  geom_line()
+
+## Monthly data, non-seasonally adjusted:
+
+```{r, warning = FALSE, message = FALSE}
+monthly_data <- read_excel(excel_file, sheet = "Monthly CHAPS index")
+
+# remove uneccessary info from headers
+monthly_data <- monthly_data[3:nrow(data),]
+
+# reset colnames
+colnames(monthly_data)<- monthly_data[1,]
+monthly_data<- monthly_data[-1,]
+monthly_data$Month <- convertToDateTime(monthly_data$Month)
+
+# change numbers from characters to numeric
+numeric_columns <- c("Aggregate", "Delayable", "Social", "Staple", "Work Related")  # Replace with your column names
+monthly_data[numeric_columns] <- lapply(monthly_data[numeric_columns], as.numeric)
+
+# pivvot column to type column for ease of plotting
+monthly_data <- pivot_longer(monthly_data, cols = numeric_columns, names_to = "Type")
+
+head(monthly_data)
+
 ```
 
-```{r}
+## Aggregate monthly data, seasonally adjusted:
+
+```{r, warning = FALSE, message = FALSE}
+
+monthly_data_sa <- read_excel(excel_file, sheet = "Monthly CHAPS index SA")
+
+# remove uneccessary info from headers
+monthly_data_sa <- monthly_data_sa[3:nrow(data),]
+
+# reset colnames
+colnames(monthly_data_sa)<- monthly_data_sa[1,]
+monthly_data_sa<- monthly_data_sa[-1,]
+monthly_data_sa$Month <- convertToDateTime(monthly_data_sa$Month)
+
+# change numbers from characters to numeric
+
+monthly_data_sa$Aggregate <- as.numeric(monthly_data_sa$Aggregate)
+
+head(monthly_data_sa)
+
+```
+
+## Visualisations of the data: {.tabset} 
+
+### Daily data 
+
+```{r, warning = FALSE, message = FALSE}
 ggplot(data, aes(x = Date, y = value)) +
   geom_line() +
   facet_wrap(~Type)
 ```
 
+### Monthly data (non-sa)
+
+```{r, warning = FALSE, message = FALSE}
+ggplot(monthly_data, aes(x = Month, y = value)) +
+  geom_line() +
+  facet_wrap(~Type)
+```
+
+### Aggregate monthly data (sa)
+
+```{r, warning = FALSE, message = FALSE}
+ggplot(monthly_data_sa, aes(x = Month, y = Aggregate)) +
+  geom_line() 
+```
+
+
+# Energy tarrif exploration
+
+```{r, warning = FALSE, message = FALSE}
+# load in the data
+retail_data <- read.csv("Data/retail-price-comparison.csv")
+retail_names <- c("Date", "Avg_st_large", "Avg_st_other", "Avg_fixed", "Cheap_tarr_large", "Cheap_tarr_all_supp", "Cheap_tarr_bask", "Default")
+colnames(retail_data) <- retail_names
+retail_data$Date <- format(as.POSIXct(retail_data$Date,format='%Y-%m-%d %H:%M:%S'),format='%Y-%m-%d')
+retail_data$Date<- as.POSIXct(retail_data$Date, format="%Y-%m-%d", tz="UTC")
+
+# filter for same dates as CHAPS data
+retail_data <- retail_data %>% 
+  filter(Date > "2020-01-12")
+
+head(retail_data)
+```
+
+```{r, warning = FALSE, message = FALSE}
+#simple plot
+ggplot(retail_data, aes(x = Date,y = Avg_st_large)) +
+  geom_line()
+```
+
+
+# Looking at the trends together {.tabset}
+
+## daily data vs std energy prices
+
+```{r, warning = FALSE, message = FALSE} 
+ggplot() +
+  geom_line(data = data, aes(x = Date, y = value), color = "red") +
+  geom_line(data = retail_data, aes(x = Date, y = Avg_st_large/15), color = "blue") +
+  scale_y_continuous(sec.axis = sec_axis(~.*15, name= "energy prices")) +
+  facet_wrap(~Type)
+```
+
+
+## monthly sa aggregate data vs std energy prices
+
+```{r, warning = FALSE, message = FALSE} 
+ggplot() +
+  geom_line(data = monthly_data_sa, aes(x = Month, y = Aggregate), color = "red") +
+  geom_line(data = retail_data, aes(x = Date, y = Avg_st_large/15), color = "blue") +
+  scale_y_continuous(sec.axis = sec_axis(~.*15, name= "energy prices")) 
+```
+
+# Limitations
+
+There are several limitations to this project. With tight time constraints it was hard to find appropriate data within recent time-frames, as well as then carrying out detailed analysis on it.
+
+CHAPS limitations:
+
+* Only includes 100 major retialors - may create bias
+* Only monitors credit/debit cards - excluding cash may bias towards higher socio-economic groups
+
+# Conclusions and recommendations
+
+
+# Sources
+
+* Bank Of England CHAPS - https://www.bankofengland.co.uk/payment-and-settlement/chaps-faster-indicator
+* Ofgem tarrif data (have to download chart as csv)- https://www.ofgem.gov.uk/energy-data-and-research/data-portal/all-available-charts?sort=created&page=7
