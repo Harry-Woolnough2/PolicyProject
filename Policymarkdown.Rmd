@@ -128,7 +128,8 @@ head(monthly_data_sa)
 ```{r, warning = FALSE, message = FALSE}
 ggplot(data, aes(x = Date, y = value)) +
   geom_line() +
-  facet_wrap(~Type)
+  facet_wrap(~Type)+
+  labs(y = "CHAPS index")
 ```
 
 ### Monthly data (non-sa)
@@ -136,17 +137,25 @@ ggplot(data, aes(x = Date, y = value)) +
 ```{r, warning = FALSE, message = FALSE}
 ggplot(monthly_data, aes(x = Month, y = value)) +
   geom_line() +
-  facet_wrap(~Type)
+  facet_wrap(~Type)+
+  labs(y = "CHAPS index")
 ```
 
 ### Aggregate monthly data (sa)
 
 ```{r, warning = FALSE, message = FALSE}
 ggplot(monthly_data_sa, aes(x = Month, y = Aggregate)) +
-  geom_line() 
+  geom_line() +
+  labs(y = "CHAPS index") +
+  labs(y = "Aggregate CHAPS index")
 ```
 
 
+## Key insights
+
+ * Looking at the plots for spending, it's clear that Christmas season has a strong effect on spending. Increasing aggregate, staple, delay able spending, and decreasing social/work related spending.
+ * It is also clear that the pandemic had a clear impact on spending over the last few years, for example with the March 2020 lockdown Social spending decreased drastically, returning to regular levels      after the July 2021 lock down ended.
+ 
 # Energy tarrif exploration
 
 ```{r, warning = FALSE, message = FALSE}
@@ -171,7 +180,8 @@ head(retail_data)
 ```{r, warning = FALSE, message = FALSE}
 #simple plot
 ggplot(retail_data, aes(x = Date,y = Avg_st_large)) +
-  geom_line()
+  geom_line() + 
+  labs(y = "Average standard variable tarrif (Pounds/year)")
 ```
 
 ### Average fixed tarrif
@@ -179,7 +189,8 @@ ggplot(retail_data, aes(x = Date,y = Avg_st_large)) +
 ```{r, warning = FALSE, message = FALSE}
 #simple plot
 ggplot(retail_data, aes(x = Date,y = Avg_fixed)) +
-  geom_line()
+  geom_line() +
+  labs(y = "Average fixed tarrif (Pounds/year)")
 ```
 
 
@@ -188,70 +199,84 @@ ggplot(retail_data, aes(x = Date,y = Avg_fixed)) +
 ```{r, warning = FALSE, message = FALSE}
 #simple plot
 ggplot(retail_data, aes(x = Date,y = Default)) +
-  geom_line()
+  geom_line() +
+  labs(y = "Tarrif cap (Pounds/year)")
 ```
 
-# Looking at the trends together {.tabset}
 
-## daily data vs std energy prices
+## Key insights
+
+* From the plots we can see that the average standard variable tarrifs nearly exactly matches those of the tarrif caps, with companies always increasing costs where possible.
+
+# Looking at the trends together 
+
+## Visualisations {.tabset}
+
+### daily data vs std energy prices
 
 ```{r, warning = FALSE, message = FALSE} 
 ggplot() +
-  geom_line(data = data, aes(x = Date, y = value), color = "red") +
-  geom_line(data = retail_data, aes(x = Date, y = Avg_st_large/15), color = "blue") +
-  scale_y_continuous(sec.axis = sec_axis(~.*15, name= "energy prices")) +
-  facet_wrap(~Type)
+  geom_line(data = data, aes(x = Date, y = value, color = "Spending")) +
+  geom_line(data = retail_data, aes(x = Date, y = Avg_st_large/15, color = "Energy prices")) +
+  scale_y_continuous(sec.axis = sec_axis(~.*15, name= "Average standard variable tarrif (Pounds/year))")) +
+  facet_wrap(~Type) +
+  labs(y = "CHAPS index") +
+  theme(legend.position = c(0.9, 0.25))
 ```
 
-## daily data vs fixed average
+
+### daily data vs fixed average
 
 ```{r, warning = FALSE, message = FALSE} 
 ggplot() +
-  geom_line(data = data, aes(x = Date, y = value), color = "red") +
-  geom_line(data = retail_data, aes(x = Date, y = Avg_fixed/15), color = "blue") +
-  scale_y_continuous(sec.axis = sec_axis(~.*15, name= "energy prices")) +
-  facet_wrap(~Type)
+  geom_line(data = data, aes(x = Date, y = value, color = "Spending")) +
+  geom_line(data = retail_data, aes(x = Date, y = Avg_fixed/15, color = "Energy prices")) +
+  scale_y_continuous(sec.axis = sec_axis(~.*15, name= "Average fixed tarrif (Pounds/year)")) +
+  facet_wrap(~Type)+
+  labs(y = "CHAPS index") +
+  theme(legend.position = c(0.9, 0.25))
 ```
 
-## daily vs energy cap tarrif
+### daily vs energy cap tarrif
 
 ```{r, warning = FALSE, message = FALSE} 
 ggplot() +
-  geom_line(data = data, aes(x = Date, y = value), color = "red") +
-  geom_line(data = retail_data, aes(x = Date, y = Default/15), color = "blue") +
-  scale_y_continuous(sec.axis = sec_axis(~.*15, name= "energy prices")) +
-  facet_wrap(~Type)
+  geom_line(data = data, aes(x = Date, y = value, color = "Spending")) +
+  geom_line(data = retail_data, aes(x = Date, y = Default/15, color = "Energy prices")) +
+  scale_y_continuous(sec.axis = sec_axis(~.*15, name= "Tarrif cap (Pounds/year)")) +
+  facet_wrap(~Type)+
+  labs(y = "CHAPS index") +
+  theme(legend.position = c(0.9, 0.25))
 ```
 
-## monthly sa aggregate data vs std energy prices
+### monthly sa aggregate data vs std energy prices
 
 ```{r, warning = FALSE, message = FALSE} 
 ggplot() +
-  geom_line(data = monthly_data_sa, aes(x = Month, y = Aggregate), color = "red") +
-  geom_line(data = retail_data, aes(x = Date, y = Avg_st_large/15), color = "blue") +
+  geom_line(data = monthly_data_sa, aes(x = Month, y = Aggregate, color = "Spending")) +
+  geom_line(data = retail_data, aes(x = Date, y = Avg_st_large/15, color = "Energy prices")) +
   scale_y_continuous(sec.axis = sec_axis(~.*15, name= "energy prices")) 
 ```
 
+## Key insights
 
+* Looking at the plots together, with the price increases often occurring around the Christmas period, it is hard to extract any meaningful insights from the non seasonally adjusted data. 
+* With each increase in price there is often a rise in spending on staple products, but it's impossible to say with this data whether it is causative.
+* The seasonally adjusted comparison plot also makes it hard to see any clear patterns, especially since the spending data is only available at aggregate level. 
 
 # Limitations
 
-There are several limitations to this project. With tight time constraints it was hard to find appropriate data within recent time-frames, as well as then carrying out detailed analysis on it.
-
 CHAPS limitations:
 
-* Only includes 100 major retailors - may create bias
+* Only includes 100 major retailers - may create bias
 * Only monitors credit/debit cards - excluding cash may bias towards higher socio-economic groups
 * No seasonally adjusted data for the different types apart from aggregate, which makes it very hard to extract meaningful insights
 * The groups are quite broad, which makes it hard to specifically target areas that may be effected by rising energy tarrifs.
 
-Energy tarrifs:
-
-* the dataset only contains the average, and by grouping all tarrifs together it could be removing inequalities, for example regional/socio-economic disparities between energy tarrifs and spending.
-
 Other:
 
 * Data is also from the COVID-19 pandemic, which may have a real effect on how people spent money. E.g. less spending on hospitality/eating out due to being in lockdown. This effect may be making it harder to see how people's spending changes with varying energy tarrifs.
+* With tight time constraints it was hard to find appropriate data within recent time-frames, as well as then carrying out detailed analysis on it.
 
 # Conclusions, recommendations and future research
 
